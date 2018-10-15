@@ -27,7 +27,8 @@
     "url": "https://github.com/greybutton/project-lvl3-s334/issues"
   },
   "jest": {
-    "testEnvironment": "node"
+    "testEnvironment": "node",
+    "collectCoverage": true
   },
   "homepage": "https://github.com/greybutton/project-lvl3-s334#readme",
   "dependencies": {
