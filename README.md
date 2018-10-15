@@ -5,6 +5,8 @@
 [build-badge]: https://img.shields.io/travis/greybutton/project-lvl3-s334.svg?style=flat-square
 [build]: https://travis-ci.org/greybutton/project-lvl3-s334
 
+[https://asciinema.org/a/OLZbp28an3aU32uKqioDsvh1q](https://asciinema.org/a/OLZbp28an3aU32uKqioDsvh1q)
+
 ## Description
 
 The utility for load the specified url from the network.
@@ -27,28 +29,34 @@ import pageLoader from "page-loader-greybutton";
 pageLoader(url, output);
 ```
 
-output: /path/to/files (default is './')
+output: `/path/to/files` (default is `./`)
 
 ## Development
 
 ### Setup
 
 ```sh
-$ make install
+make install
 ```
 
 ### Run tests
 
 ```sh
-$ make test
+make test
 ```
 
 ### Docker
 
+```
 docker build -t <image-name:tag> .
+```
 
+```
 docker run --rm -it -v "$(PWD)":/code <image-name:tag> command
+```
 
 ### Asciinema
 
+```
 LC_ALL=en_US.UTF-8 asciinema rec/auth
+```
