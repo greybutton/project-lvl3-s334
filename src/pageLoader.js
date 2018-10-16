@@ -8,7 +8,6 @@ export default (link, options) => {
 
   return axios
     .get(link)
-    .then(({ data }) => {
-      fsPromises.writeFile(dest, data);
-    });
+    .then(({ data }) => fsPromises.writeFile(dest, data))
+    .then(err => !err);
 };

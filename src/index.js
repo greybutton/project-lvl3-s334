@@ -1,3 +1,3 @@
-import main from './main';
+import pageLoader from './pageLoader';
 
-export default main;
+export default pageLoader;
