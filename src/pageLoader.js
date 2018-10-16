@@ -9,5 +9,6 @@ export default (link, options) => {
   return axios
     .get(link)
     .then(({ data }) => fsPromises.writeFile(dest, data))
-    .then(err => !err);
+    .then(() => console.log(`success load ${link}`))
+    .catch(e => console.log(`fail load ${link} ${e}`));
 };

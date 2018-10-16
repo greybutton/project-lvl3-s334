@@ -1,5 +1,4 @@
 import os from 'os';
-import url from 'url';
 import path from 'path';
 import { promises as fsPromises } from 'fs';
 import nock from 'nock';
@@ -12,16 +11,6 @@ const host = 'http://localhost';
 
 axios.defaults.adapter = httpAdapter;
 
-const makeDest = (link, options) => {
-  const { hostname, pathname } = url.parse(link);
-  const filename = hostname
-    .concat(pathname)
-    .replace(/\W+/g, '-')
-    .concat('.html');
-  const dest = path.join(options.output, filename);
-  return dest;
-};
-
 describe('page loader', () => {
   test('test', async () => {
     const expected = 'test data';
@@ -33,7 +22,8 @@ describe('page loader', () => {
       output: tempDir,
     };
     const link = host.concat(testPath);
-    const dest = makeDest(link, options);
+    const filename = 'localhost-test.html';
+    const dest = path.join(tempDir, filename);
 
     nock(host)
       .get(testPath)
@@ -54,7 +44,8 @@ describe('page loader', () => {
       output: tempDir,
     };
     const link = host.concat(testPath);
-    const dest = makeDest(link, options);
+    const filename = 'localhost-anothertest.html';
+    const dest = path.join(tempDir, filename);
 
     nock(host)
       .get(testPath)

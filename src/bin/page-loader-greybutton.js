@@ -11,7 +11,6 @@ export default commander
   .arguments('<url>')
   .option('-o, --output [path]', 'Output path', './')
   .action((url, options) => {
-    pageLoader(url, options)
-      .then(() => console.log(`success load ${url}`));
+    pageLoader(url, options);
   })
   .parse(process.argv);
