@@ -33,7 +33,8 @@
   "homepage": "https://github.com/greybutton/project-lvl3-s334#readme",
   "dependencies": {
     "axios": "^0.18.0",
-    "commander": "^2.19.0"
+    "commander": "^2.19.0",
+    "errno": "^0.1.7"
   },
   "devDependencies": {
     "@babel/cli": "^7.1.0",
