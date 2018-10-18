@@ -333,3 +333,52 @@ describe('page loader with resources', () => {
     });
   });
 });
+
+describe('error tests', () => {
+  test('wrong output', async () => {
+    const testPath = '/';
+    const link = host.concat(testPath);
+    const options = {
+      output: 'folder/folder',
+    };
+    try {
+      await pageLoader(link, options);
+    } catch (e) {
+      expect(e).toThrowErrorMatchingSnapshot();
+    }
+  });
+  test('incorrect url', async () => {
+    const tempDir = await fsPromises.mkdtemp(
+      path.resolve(os.tmpdir(), 'page-loader-greybutton-'),
+    );
+    const link = 'incorrect url';
+    const options = {
+      output: tempDir,
+    };
+    try {
+      await pageLoader(link, options);
+    } catch (e) {
+      expect(e).toThrowErrorMatchingSnapshot();
+    }
+  });
+  test('cant load resource', async () => {
+    const document = '<!DOCTYPE html><html><head><link href="/folder/file.css"></head><body></body></html>';
+    const tempDir = await fsPromises.mkdtemp(
+      path.resolve(os.tmpdir(), 'page-loader-greybutton-'),
+    );
+    const testPath = '/';
+    const link = host.concat(testPath);
+    const options = {
+      output: tempDir,
+    };
+    nock(host)
+      .get(testPath)
+      .reply(200, document);
+
+    try {
+      await pageLoader(link, options);
+    } catch (e) {
+      expect(e).toThrowErrorMatchingSnapshot();
+    }
+  });
+});

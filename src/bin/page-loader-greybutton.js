@@ -13,6 +13,9 @@ export default commander
   .action((url, options) => {
     pageLoader(url, options)
       .then(() => console.log(`success load ${url}`))
-      .catch(e => console.log(`fail load ${url} ${e}`));
+      .catch((e) => {
+        console.error(`fail load ${url}`);
+        throw e;
+      });
   })
   .parse(process.argv);
