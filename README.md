@@ -5,7 +5,7 @@
 [build-badge]: https://img.shields.io/travis/greybutton/project-lvl3-s334.svg?style=flat-square
 [build]: https://travis-ci.org/greybutton/project-lvl3-s334
 
-[https://asciinema.org/a/OLZbp28an3aU32uKqioDsvh1q](https://asciinema.org/a/OLZbp28an3aU32uKqioDsvh1q)
+[https://asciinema.org/a/yHr61B9cels8g6Y5wWIcz85Wo](https://asciinema.org/a/yHr61B9cels8g6Y5wWIcz85Wo)
 
 ## Description
 
