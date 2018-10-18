@@ -1,0 +1,2 @@
+const folderScript = () => 'folder script';
+folderScript();

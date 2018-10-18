@@ -33,6 +33,7 @@
   "homepage": "https://github.com/greybutton/project-lvl3-s334#readme",
   "dependencies": {
     "axios": "^0.18.0",
+    "cheerio": "^1.0.0-rc.2",
     "commander": "^2.19.0",
     "errno": "^0.1.7"
   },
