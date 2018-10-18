@@ -11,7 +11,7 @@ build:
 	npm run build
 
 test:
-	npm test
+	DEBUG=page-loader npm test
 
 test-watch:
 	npm test -- --watchAll

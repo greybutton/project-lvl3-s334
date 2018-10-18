@@ -2,28 +2,39 @@ import { promises as fsPromises } from 'fs';
 import url from 'url';
 import axios from 'axios';
 import cheerio from 'cheerio';
+import debug from 'debug';
+import { keys, flatten } from 'lodash/fp';
 
 import {
   makeDest, makeFilesDest, makeFullFilesDest, changeFileDest, makeFileDest,
 } from './utils';
 
+const log = debug('page-loader');
+
+const tags = {
+  link: {
+    selector: 'link[href^="/"]:not([href^="//"], [href$=".xml"])',
+    attr: 'href',
+  },
+  img: {
+    selector: 'img[src^="/"]:not([src^="//"])',
+    attr: 'src',
+  },
+  script: {
+    selector: 'script[src^="/"]:not([src^="//"])',
+    attr: 'src',
+  },
+};
+
 const changeHtml = (data, dest) => {
   const $ = cheerio.load(data);
 
-  $('link[href^="/"]:not([href^="//"], [href$=".xml"])').map((i, elem) => {
-    const fileDest = $(elem).attr('href');
-    const newFileDest = changeFileDest(dest, fileDest);
-    return $(elem).attr('href', newFileDest);
-  });
-  $('img[src^="/"]:not([src^="//"])').map((i, elem) => {
-    const fileDest = $(elem).attr('src');
-    const newFileDest = changeFileDest(dest, fileDest);
-    return $(elem).attr('src', newFileDest);
-  });
-  $('script[src^="/"]:not([src^="//"])').map((i, elem) => {
-    const fileDest = $(elem).attr('src');
-    const newFileDest = changeFileDest(dest, fileDest);
-    return $(elem).attr('src', newFileDest);
+  keys(tags).forEach((key) => {
+    $(tags[key].selector).map((i, elem) => {
+      const fileDest = $(elem).attr(tags[key].attr);
+      const newFileDest = changeFileDest(dest, fileDest);
+      return $(elem).attr(tags[key].attr, newFileDest);
+    });
   });
 
   const html = $.html();
@@ -32,12 +43,9 @@ const changeHtml = (data, dest) => {
 
 const getUrls = (data) => {
   const $ = cheerio.load(data);
-
-  const links = $('link[href^="/"]:not([href^="//"], [href$=".xml"])').map((i, elem) => $(elem).attr('href')).get();
-  const images = $('img[src^="/"]:not([src^="//"])').map((i, elem) => $(elem).attr('src')).get();
-  const scripts = $('script[src^="/"]:not([src^="//"])').map((i, elem) => $(elem).attr('src')).get();
-
-  const result = [...links, ...images, ...scripts];
+  const links = keys(tags)
+    .map(key => $(tags[key].selector).map((i, elem) => $(elem).attr(tags[key].attr)).get());
+  const result = flatten(links);
   return result;
 };
 
@@ -47,27 +55,42 @@ export default (link, options) => {
   const filesDest = makeFilesDest(link);
   const fullFilesDest = makeFullFilesDest(filesDest, options);
 
+  let filesData = [];
+  let html = '';
+
   return axios
     .get(link)
     .then(({ data }) => {
+      html = data;
       const fileUrls = getUrls(data).map(pathname => url.format({ protocol, hostname, pathname }));
-      const filePromises = fileUrls.map(fileUrl => axios.get(fileUrl, { responseType: 'arraybuffer' }));
+      log('file urls', fileUrls);
+      const filePromises = fileUrls.map(fileUrl => axios
+        .get(fileUrl, { responseType: 'arraybuffer' })
+        .then((response) => {
+          log('loaded file', fileUrl);
+          return response;
+        }));
       return Promise
         .all(filePromises)
         .then(responses => fsPromises
           .mkdir(fullFilesDest)
-          .then(() => responses))
-        .then(responses => responses.map((response) => {
-          const { data: fileData, config: { url: urlFile } } = response;
-          const fileDest = makeFileDest(fullFilesDest, urlFile);
-          return fsPromises.writeFile(fileDest, fileData);
-        }))
-        .then(() => {
-          const newHtml = changeHtml(data, filesDest);
-          return newHtml;
-        });
+          .then(() => { filesData = responses; }))
+        .then(() => log('create files directory', fullFilesDest));
+    })
+    .then(() => {
+      const newHtml = changeHtml(html, filesDest);
+      return newHtml;
     })
     .then((data) => {
-      fsPromises.writeFile(dest, data);
-    });
+      fsPromises
+        .writeFile(dest, data)
+        .then(() => log('create main file', dest));
+    })
+    .then(() => filesData.forEach((response) => {
+      const { data: fileData, config: { url: urlFile } } = response;
+      const fileDest = makeFileDest(fullFilesDest, urlFile);
+      fsPromises
+        .writeFile(fileDest, fileData)
+        .then(() => log('create sub file', fileDest));
+    }));
 };
