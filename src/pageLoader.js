@@ -4,6 +4,7 @@ import axios from 'axios';
 import cheerio from 'cheerio';
 import debug from 'debug';
 import { keys, flatten } from 'lodash/fp';
+import Listr from 'listr';
 
 import {
   makeDest, makeFilesDest, makeFullFilesDest, changeFileDest, makeFileDest,
@@ -64,23 +65,27 @@ export default (link, options) => {
 
   return axios
     .get(link)
-    .then(({ data }) => {
-      html = changeHtml(data, filesDest);
-      const fileUrls = getUrls(data).map(pathname => url.format({ protocol, hostname, pathname }));
-      const filePromises = fileUrls.map(fileUrl => axios
-        .get(fileUrl, { responseType: 'arraybuffer' })
-        .then((response) => {
-          log('load file', fileUrl);
-          return response;
-        }));
-      return filePromises;
+    .then(({ data }) => { html = data; })
+    .then(() => {
+      const newHtml = changeHtml(html, filesDest);
+      fsPromises.writeFile(dest, newHtml);
     })
-    .then(promises => Promise.all(promises))
-    .then((responses) => { filesData = responses; })
-    .then(() => fsPromises.writeFile(dest, html))
     .then(() => log('create main file', dest))
     .then(() => fsPromises.mkdir(fullFilesDest))
     .then(() => log('create files directory', fullFilesDest))
+    .then(() => {
+      const fileUrls = getUrls(html).map(pathname => url.format({ protocol, hostname, pathname }));
+      const filesTasks = new Listr(fileUrls.map(fileUrl => ({
+        title: fileUrl,
+        task: () => axios
+          .get(fileUrl, { responseType: 'arraybuffer' })
+          .then((response) => {
+            log('load file', fileUrl);
+            filesData = filesData.concat(response);
+          }),
+      })));
+      return filesTasks.run();
+    })
     .then(() => filesData.map((response) => {
       const { data: fileData, config: { url: urlFile } } = response;
       const fileDest = makeFileDest(fullFilesDest, urlFile);

@@ -37,6 +37,7 @@
     "commander": "^2.19.0",
     "debug": "^4.1.0",
     "errno": "^0.1.7",
+    "listr": "^0.14.2",
     "lodash": "^4.17.11"
   },
   "devDependencies": {
