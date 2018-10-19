@@ -11,13 +11,10 @@ export default commander
   .version(version, '-V, --version')
   .description('Page loader.')
   .arguments('<url>')
-  .option('-o, --output [path]', 'Output path', '.')
+  .option('-o, --output [path]', 'Output path', __dirname)
   .action((url, options) => {
     pageLoader(url, options)
-      .then(() => {
-        proccess.exitCode = 0;
-        console.log(`success load ${url}`);
-      })
+      .then(() => console.log(`success load ${url}`))
       .catch((e) => {
         proccess.exitCode = 1;
         console.error(`fail load ${url}`);
