@@ -1,5 +1,4 @@
 import { promises as fsPromises } from 'fs';
-import proccess from 'process';
 import url from 'url';
 import axios from 'axios';
 import cheerio from 'cheerio';
@@ -53,9 +52,7 @@ const getUrls = (data) => {
 export default (link, options) => {
   const { protocol, hostname } = url.parse(link);
   if (!protocol && !hostname) {
-    proccess.exitCode = 1;
     const message = `incorrent url ${link}`;
-    console.error(message);
     throw new Error(message);
   }
   const dest = makeDest(link, options);
@@ -68,7 +65,7 @@ export default (link, options) => {
   return axios
     .get(link)
     .then(({ data }) => {
-      html = data;
+      html = changeHtml(data, filesDest);
       const fileUrls = getUrls(data).map(pathname => url.format({ protocol, hostname, pathname }));
       log('file urls', fileUrls);
       const filePromises = fileUrls.map(fileUrl => axios
@@ -76,52 +73,23 @@ export default (link, options) => {
         .then((response) => {
           log('load file', fileUrl);
           return response;
-        })
-        .catch((e) => {
-          proccess.exitCode = 1;
-          const message = `cant load file ${e.config.url} ${e.message}`;
-          console.error(message);
-          throw e;
         }));
 
       return Promise
         .all(filePromises)
         .then((responses) => { filesData = responses; });
     })
-    .then(() => {
-      const newHtml = changeHtml(html, filesDest);
-      return newHtml;
-    })
-    .then(data => fsPromises
-      .writeFile(dest, data)
-      .then(() => log('create main file', dest))
-      .catch((e) => {
-        proccess.exitCode = 1;
-        const message = `cant create main file ${dest}`;
-        console.error(message);
-        throw e;
-      }))
+    .then(() => fsPromises
+      .writeFile(dest, html)
+      .then(() => log('create main file', dest)))
     .then(() => fsPromises
       .mkdir(fullFilesDest)
-      .then(() => log('create files directory', fullFilesDest))
-      .catch((e) => {
-        proccess.exitCode = 1;
-        const message = `cant create files directory ${fullFilesDest}`;
-        console.error(message);
-        throw e;
-      }))
+      .then(() => log('create files directory', fullFilesDest)))
     .then(() => filesData.forEach((response) => {
       const { data: fileData, config: { url: urlFile } } = response;
       const fileDest = makeFileDest(fullFilesDest, urlFile);
       fsPromises
         .writeFile(fileDest, fileData)
-        .then(() => log('create sub file', fileDest))
-        .catch((e) => {
-          proccess.exitCode = 1;
-          const message = `cant create sub file ${fileDest}`;
-          console.error(message);
-          throw e;
-        });
-    }))
-    .then(() => { proccess.exitCode = 0; });
+        .then(() => log('create sub file', fileDest));
+    }));
 };

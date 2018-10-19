@@ -1,9 +1,11 @@
 #!/usr/bin/env node
 
+import proccess from 'process';
 import commander from 'commander';
 
 import { version } from '../../package.json';
 import pageLoader from '..';
+import errors from '../errors';
 
 export default commander
   .version(version, '-V, --version')
@@ -12,10 +14,15 @@ export default commander
   .option('-o, --output [path]', 'Output path', '.')
   .action((url, options) => {
     pageLoader(url, options)
-      .then(() => console.log(`success load ${url}`))
+      .then(() => {
+        proccess.exitCode = 0;
+        console.log(`success load ${url}`);
+      })
       .catch((e) => {
+        proccess.exitCode = 1;
         console.error(`fail load ${url}`);
-        throw e;
+        const message = errors(e);
+        console.error(message);
       });
   })
   .parse(process.argv);
