@@ -11,6 +11,8 @@ debug: [https://asciinema.org/a/M5T4Oi8ScesiohH2joecNSQfS](https://asciinema.org
 
 error: [https://asciinema.org/a/zNhX3vfTaKxZN0OeRrGjk2oA2](https://asciinema.org/a/zNhX3vfTaKxZN0OeRrGjk2oA2)
 
+listr: [https://asciinema.org/a/GtXQwtuBcmgxXT4g8jevOuqeo](https://asciinema.org/a/GtXQwtuBcmgxXT4g8jevOuqeo)
+
 ## Description
 
 The utility for load the specified url from the network.
