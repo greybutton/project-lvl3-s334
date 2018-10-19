@@ -67,29 +67,25 @@ export default (link, options) => {
     .then(({ data }) => {
       html = changeHtml(data, filesDest);
       const fileUrls = getUrls(data).map(pathname => url.format({ protocol, hostname, pathname }));
-      log('file urls', fileUrls);
       const filePromises = fileUrls.map(fileUrl => axios
         .get(fileUrl, { responseType: 'arraybuffer' })
         .then((response) => {
           log('load file', fileUrl);
           return response;
         }));
-
-      return Promise
-        .all(filePromises)
-        .then((responses) => { filesData = responses; });
+      return filePromises;
     })
-    .then(() => fsPromises
-      .writeFile(dest, html)
-      .then(() => log('create main file', dest)))
-    .then(() => fsPromises
-      .mkdir(fullFilesDest)
-      .then(() => log('create files directory', fullFilesDest)))
-    .then(() => filesData.forEach((response) => {
+    .then(promises => Promise.all(promises))
+    .then((responses) => { filesData = responses; })
+    .then(() => fsPromises.writeFile(dest, html))
+    .then(() => log('create main file', dest))
+    .then(() => fsPromises.mkdir(fullFilesDest))
+    .then(() => log('create files directory', fullFilesDest))
+    .then(() => filesData.map((response) => {
       const { data: fileData, config: { url: urlFile } } = response;
       const fileDest = makeFileDest(fullFilesDest, urlFile);
-      fsPromises
-        .writeFile(fileDest, fileData)
-        .then(() => log('create sub file', fileDest));
-    }));
+      fsPromises.writeFile(fileDest, fileData);
+      return fileDest;
+    }))
+    .then(subFilesDests => subFilesDests.forEach(item => log('create sub file', item)));
 };
