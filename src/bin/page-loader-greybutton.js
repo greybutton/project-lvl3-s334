@@ -11,7 +11,7 @@ export default commander
   .version(version, '-V, --version')
   .description('Page loader.')
   .arguments('<url>')
-  .option('-o, --output [path]', 'Output path', __dirname)
+  .option('-o, --output [path]', 'Output path', proccess.cwd())
   .action((url, options) => {
     pageLoader(url, options)
       .then(() => console.log(`success load ${url}`))

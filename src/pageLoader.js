@@ -61,6 +61,7 @@ export default (link, options) => {
   const fullFilesDest = makeFullFilesDest(filesDest, options);
 
   let filesData = [];
+  let subFilesDests = [];
   let html = '';
 
   return axios
@@ -68,7 +69,7 @@ export default (link, options) => {
     .then(({ data }) => { html = data; })
     .then(() => {
       const newHtml = changeHtml(html, filesDest);
-      fsPromises.writeFile(dest, newHtml);
+      return fsPromises.writeFile(dest, newHtml);
     })
     .then(() => log('create main file', dest))
     .then(() => fsPromises.mkdir(fullFilesDest))
@@ -86,11 +87,11 @@ export default (link, options) => {
       })));
       return filesTasks.run();
     })
-    .then(() => filesData.map((response) => {
+    .then(() => Promise.all(filesData.map((response) => {
       const { data: fileData, config: { url: urlFile } } = response;
       const fileDest = makeFileDest(fullFilesDest, urlFile);
-      fsPromises.writeFile(fileDest, fileData);
-      return fileDest;
-    }))
-    .then(subFilesDests => subFilesDests.forEach(item => log('create sub file', item)));
+      subFilesDests = subFilesDests.concat(urlFile);
+      return fsPromises.writeFile(fileDest, fileData);
+    })))
+    .then(() => subFilesDests.forEach(item => log('create sub file', item)));
 };
